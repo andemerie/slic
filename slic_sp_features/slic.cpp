@@ -377,3 +377,18 @@ void Slic::colour_with_cluster_means(IplImage *image) {
         }
     }
 }
+
+void Slic::colour_superpixels(IplImage *image) {
+	vector<CvScalar> colours(centers.size());
+
+	for (int i = 0; i < colours.size(); i++) {
+		colours[i] = CvScalar(rand() % 256, rand() % 256, rand() % 256);
+	}
+
+	for (int i = 0; i < image->width; i++) {
+		for (int j = 0; j < image->height; j++) {
+			CvScalar ncolour = colours[clusters[i][j]];
+			cvSet2D(image, j, i, ncolour);
+		}
+	}
+}

@@ -73,6 +73,7 @@ class Slic {
         void display_center_grid(IplImage *image, CvScalar colour);
         void display_contours(IplImage *image, CvScalar colour);
         void colour_with_cluster_means(IplImage *image);
+		void colour_superpixels(IplImage *image);
 };
 
 #endif
