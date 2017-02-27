@@ -19,6 +19,7 @@
 #include <math.h>
 #include <vector>
 #include <float.h>
+#include <set>
 using namespace std;
 
 /* 2d matrices are handled by 2d vectors. */
@@ -74,6 +75,7 @@ class Slic {
         void display_contours(IplImage *image, CvScalar colour);
         void colour_with_cluster_means(IplImage *image);
 		void colour_superpixels(IplImage *image);
+		void display_vertices(IplImage *image, CvScalar colour);
 };
 
 #endif

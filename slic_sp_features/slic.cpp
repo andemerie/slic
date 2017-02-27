@@ -392,3 +392,40 @@ void Slic::colour_superpixels(IplImage *image) {
 		}
 	}
 }
+
+void Slic::display_vertices(IplImage *image, CvScalar colour) {
+	const int dx4[4] = { -1, -1, 0, 0 };
+	const int dy4[4] = { 0, -1, -1, 0 }; 
+
+	vector<CvPoint> vertices;
+
+	for (int i = 0; i < image->width; i++) {
+		for (int j = 0; j < image->height; j++) {
+
+			if ((j == 0 || j == image->height - 1) && (i == 0 || clusters[i][j] != clusters[i - 1][j]) ||
+				(j == 0 || j == image->height - 1) && i == image->width - 1 ||
+				(i == 0 || i == image->width - 1) && clusters[i][j] != clusters[i][j - 1]) {
+				vertices.push_back(cvPoint(i, j));
+				continue;
+			}
+
+			set<int> adjacent_clusters;
+
+			for (int k = 0; k < 4; k++) {
+				int x = i + dx4[k], y = j + dy4[k];
+
+				if (x >= 0 && x < image->width && y >= 0 && y < image->height) {
+					adjacent_clusters.insert(clusters[x][y]);
+				}
+			}
+
+			if (adjacent_clusters.size() >= 3) {
+				vertices.push_back(cvPoint(i, j));
+			}
+		}
+	}
+
+	for (int i = 0; i < vertices.size(); i++) {
+		cvSet2D(image, vertices[i].y, vertices[i].x, colour);
+	}
+}
