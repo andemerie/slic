@@ -300,7 +300,6 @@ void Slic::display_contours(IplImage *image, CvScalar colour) {
 	
 	/* Initialize the contour vector and the matrix detailing whether a pixel
 	 * is already taken to be a contour. */
-	vector<CvPoint> contours;
 	vec2db istaken;
 	for (int i = 0; i < image->width; i++) { 
         vector<bool> nb;
@@ -428,4 +427,16 @@ void Slic::display_vertices(IplImage *image, CvScalar colour) {
 	for (int i = 0; i < vertices.size(); i++) {
 		cvSet2D(image, vertices[i].y, vertices[i].x, colour);
 	}
+}
+
+void Slic::save_contours(IplImage image, const char* filename) {
+	Mat contours_color(image.height, image.width, CV_8UC3, CV_RGB(255, 255, 255)), contours_grayscale, contours_binary;
+	for (int i = 0; i < contours.size(); i++) {
+		contours_color.at<Vec3b>(contours[i].y, contours[i].x)[0] = 0;
+		contours_color.at<Vec3b>(contours[i].y, contours[i].x)[1] = 0;
+		contours_color.at<Vec3b>(contours[i].y, contours[i].x)[2] = 0;
+	}
+	cvtColor(contours_color, contours_grayscale, CV_BGR2GRAY);
+	threshold(contours_grayscale, contours_binary, 127, 255, THRESH_BINARY);
+	imwrite(filename, contours_binary);
 }

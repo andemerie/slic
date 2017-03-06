@@ -14,13 +14,15 @@
  */
 
 #include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <stdio.h>
 #include <math.h>
 #include <vector>
 #include <float.h>
 #include <set>
 using namespace std;
+using namespace cv;
 
 /* 2d matrices are handled by 2d vectors. */
 #define vec2dd vector<vector<double> >
@@ -50,6 +52,8 @@ class Slic {
         /* The step size per cluster, and the colour (nc) and distance (ns)
          * parameters. */
         int step, nc, ns;
+
+		vector<CvPoint> contours;
         
         /* Compute the distance between a center and an individual pixel. */
         double compute_dist(int ci, CvPoint pixel, CvScalar colour);
@@ -76,6 +80,8 @@ class Slic {
         void colour_with_cluster_means(IplImage *image);
 		void colour_superpixels(IplImage *image);
 		void display_vertices(IplImage *image, CvScalar colour);
+
+		void save_contours(IplImage image, const char* filename);
 };
 
 #endif

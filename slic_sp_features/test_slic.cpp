@@ -37,7 +37,8 @@ int main(int argc, char *argv[]) {
 
 	/* Display the contours and show the result. */
 	slic.display_contours(image, CV_RGB(255, 0, 0));
-	slic.display_vertices(image, CV_RGB(255, 255, 255));
+	slic.save_contours(*image, argv[5]);
+	//slic.display_vertices(image, CV_RGB(255, 255, 255));
 	cvShowImage("result", image);
 	cvWaitKey(0);
 	cvSaveImage(argv[4], image);
