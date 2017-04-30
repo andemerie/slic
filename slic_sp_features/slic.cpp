@@ -439,126 +439,126 @@ void Slic::save_contours(IplImage image, const char* filename) {
 	imwrite(filename, contours_binary);
 }
 
-//void get_pixel_by_direction(dir_t dir, int &new_x, int &new_y, int x, int y) {
-//	switch (dir) {
-//	case west:
-//		new_x = x - 1;
-//		new_y = y;
-//		break; 
-//	case south:
-//		new_x = x;
-//		new_y = y + 1;
-//		break;
-//	case east:
-//		new_x = x + 1;
-//		new_y = y;
-//		break;
-//	case north:
-//		new_x = x;
-//		new_y = y - 1;
-//		break;
-//	}
-//}
-//
-//bool are_valid_values(IplImage *image, int new_x, int new_y) {
-//	if (new_x >= 0 && new_x < image->width && new_y >= 0 && new_y < image->height) return true;
-//	return false;
-//}
-//
-//dir_t rotate_ccw(dir_t dir) {
-//	switch (dir)  {
-//	case west:
-//		return south;
-//	case south:
-//		return east;
-//	case east:
-//		return north;
-//	case north:
-//		return west;
-//	}
-//}
-//
-//void go_next_edge_pixel(IplImage *image, dir_t &dir, int &x, int &y) {
-//	int new_x, new_y;
-//	int countdown = 4;
-//	get_pixel_by_direction(dir, new_x, new_y, x, y);
-//	while (!are_valid_values(image, new_x, new_y) || clusters[new_x][new_y] != clusters[x][y] && !is_vertex[new_x][new_y]) {
-//		dir = rotate_ccw(dir);
-//		if (!--countdown) break;
-//		get_pixel_by_direction(dir, new_x, new_y, new_x, new_y);
-//	}
-//	x = new_x, y = new_y;
-//}
-//
-//void get_init_dir(dir_t &dir) {
-//	switch (dir) {
-//	case west:
-//		dir = north;
-//		break;
-//	case north:
-//		dir = east;
-//		break;
-//	case east:
-//		dir = south;
-//		break;
-//	case south:
-//		dir = west;
-//		break;
-//	}
-//}
-//
-//void Slic::construct_graph(IplImage *image) {
-//	/*typedef adjacency_list < listS, vecS, directedS,
-//		no_property, property < edge_weight_t, int > > graph_t;
-//	typedef graph_traits < graph_t >::vertex_descriptor vertex_descriptor;*/
-//	typedef std::pair<CvPoint, CvPoint> Edge;
-//
-//	/*const int num_nodes = 5;
-//	enum nodes { A, B, C, D, E };
-//	char name[] = "ABCDE";
-//	Edge edge_array[] = { Edge(A, C), Edge(B, B), Edge(B, D), Edge(B, E),
-//		Edge(C, B), Edge(C, D), Edge(D, E), Edge(E, A), Edge(E, B)
-//	};
-//	int weights[] = { 1, 2, 1, 2, 7, 3, 1, 1, 1 };
-//	int num_arcs = sizeof(edge_array) / sizeof(Edge);
-//	graph_t g(edge_array, edge_array + num_arcs, weights, num_nodes);
-//	property_map<graph_t, edge_weight_t>::type weightmap = get(edge_weight, g);
-//	std::vector<vertex_descriptor> p(num_vertices(g));
-//	std::vector<int> d(num_vertices(g));
-//	vertex_descriptor s = vertex(A, g);*/
-//
-//	for (int i = 0; i < image->width; i++) {
-//		vector<bool> column;
-//		for (int j = 0; j < image->height; j++) {
-//			column.push_back(false);
-//		}
-//		is_vertex.push_back(column);
-//	}
-//	for (int i = 0; i < vertices.size(); i++) {
-//		is_vertex[vertices[i].x][vertices[i].y] = true;
-//	}
-//
-//	vector<Edge> edges;
-//	vector<int> weights;
-//
-//	for (int i = 0; i < vertices.size(); i++) {
-//
-//		int x = vertices[i].x, y = vertices[i].y;
-//
-//		int weight_counter = 0;
-//
-//		enum dir_t {west, south, east, north};
-//		dir_t dir = south;
-//		while (true) {
-//			get_init_dir(dir);
-//			go_next_edge_pixel(image, dir, x, y);
-//			if (x == vertices[i].x && y == vertices[i].y || is_vertex[x][y]) break;
-//			weight_counter++;
-//		}
-//
-//		if (x == vertices[i].x && y == vertices[i].y) continue;
-//
-//		edges.push_back(Edge(vertices[i], CvPoint(x, y)));
-//		weights.push_back(weight_counter);
-//	}
-//}
+void get_pixel_by_direction(dir_t dir, int &new_x, int &new_y, int x, int y) {
+	switch (dir) {
+	case west:
+		new_x = x - 1;
+		new_y = y;
+		break; 
+	case south:
+		new_x = x;
+		new_y = y + 1;
+		break;
+	case east:
+		new_x = x + 1;
+		new_y = y;
+		break;
+	case north:
+		new_x = x;
+		new_y = y - 1;
+		break;
+	}
+}
+
+bool are_valid_values(IplImage *image, int new_x, int new_y) {
+	if (new_x >= 0 && new_x < image->width && new_y >= 0 && new_y < image->height) return true;
+	return false;
+}
+
+dir_t rotate_ccw(dir_t dir) {
+	switch (dir)  {
+	case west:
+		return south;
+	case south:
+		return east;
+	case east:
+		return north;
+	case north:
+		return west;
+	}
+}
+
+void go_next_edge_pixel(IplImage *image, dir_t &dir, int &x, int &y) {
+	int new_x, new_y;
+	int countdown = 4;
+	get_pixel_by_direction(dir, new_x, new_y, x, y);
+	while (!are_valid_values(image, new_x, new_y) || clusters[new_x][new_y] != clusters[x][y] && !is_vertex[new_x][new_y]) {
+		dir = rotate_ccw(dir);
+		if (!--countdown) break;
+		get_pixel_by_direction(dir, new_x, new_y, new_x, new_y);
+	}
+	x = new_x, y = new_y;
+}
+
+void get_init_dir(dir_t &dir) {
+	switch (dir) {
+	case west:
+		dir = north;
+		break;
+	case north:
+		dir = east;
+		break;
+	case east:
+		dir = south;
+		break;
+	case south:
+		dir = west;
+		break;
+	}
+}
+
+void Slic::construct_graph(IplImage *image) {
+	/*typedef adjacency_list < listS, vecS, directedS,
+		no_property, property < edge_weight_t, int > > graph_t;
+	typedef graph_traits < graph_t >::vertex_descriptor vertex_descriptor;*/
+	typedef std::pair<CvPoint, CvPoint> Edge;
+
+	/*const int num_nodes = 5;
+	enum nodes { A, B, C, D, E };
+	char name[] = "ABCDE";
+	Edge edge_array[] = { Edge(A, C), Edge(B, B), Edge(B, D), Edge(B, E),
+		Edge(C, B), Edge(C, D), Edge(D, E), Edge(E, A), Edge(E, B)
+	};
+	int weights[] = { 1, 2, 1, 2, 7, 3, 1, 1, 1 };
+	int num_arcs = sizeof(edge_array) / sizeof(Edge);
+	graph_t g(edge_array, edge_array + num_arcs, weights, num_nodes);
+	property_map<graph_t, edge_weight_t>::type weightmap = get(edge_weight, g);
+	std::vector<vertex_descriptor> p(num_vertices(g));
+	std::vector<int> d(num_vertices(g));
+	vertex_descriptor s = vertex(A, g);*/
+
+	for (int i = 0; i < image->width; i++) {
+		vector<bool> column;
+		for (int j = 0; j < image->height; j++) {
+			column.push_back(false);
+		}
+		is_vertex.push_back(column);
+	}
+	for (int i = 0; i < vertices.size(); i++) {
+		is_vertex[vertices[i].x][vertices[i].y] = true;
+	}
+
+	vector<Edge> edges;
+	vector<int> weights;
+
+	for (int i = 0; i < vertices.size(); i++) {
+
+		int x = vertices[i].x, y = vertices[i].y;
+
+		int weight_counter = 0;
+
+		enum dir_t {west, south, east, north};
+		dir_t dir = south;
+		while (true) {
+			get_init_dir(dir);
+			go_next_edge_pixel(image, dir, x, y);
+			if (x == vertices[i].x && y == vertices[i].y || is_vertex[x][y]) break;
+			weight_counter++;
+		}
+
+		if (x == vertices[i].x && y == vertices[i].y) continue;
+
+		edges.push_back(Edge(vertices[i], CvPoint(x, y)));
+		weights.push_back(weight_counter);
+	}
+}
