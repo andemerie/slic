@@ -21,6 +21,14 @@
 #include <vector>
 #include <float.h>
 #include <set>
+
+#include <boost/config.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/property_map/property_map.hpp>
+using namespace boost;
+
 using namespace std;
 using namespace cv;
 
