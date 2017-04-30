@@ -82,6 +82,7 @@ class Slic {
 		void display_vertices(IplImage *image, CvScalar colour);
 
 		void save_contours(IplImage image, const char* filename);
+		void construct_graph(IplImage *image);
 };
 
 #endif
