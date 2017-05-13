@@ -22,6 +22,7 @@
 #include <float.h>
 #include <set>
 
+#include <iostream>
 #include <boost/config.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -62,6 +63,10 @@ class Slic {
         int step, nc, ns;
 
 		vector<CvPoint> contours;
+		vector<CvPoint> verts;
+
+		vec2db is_vertex;
+		enum dir_t {west, south, east, north};
         
         /* Compute the distance between a center and an individual pixel. */
         double compute_dist(int ci, CvPoint pixel, CvScalar colour);
@@ -71,6 +76,13 @@ class Slic {
         /* Remove and initialize the 2d vectors. */
         void clear_data();
         void init_data(IplImage *image);
+
+		void go_next_edge_pixel(IplImage *image, dir_t &dir, int &x, int &y);
+		void get_pixel_by_direction(dir_t dir, int &new_x, int &new_y, int x, int y);
+		bool are_valid_values(IplImage *image, int new_x, int new_y);
+		bool is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int y);
+		dir_t rotate_ccw(dir_t dir);
+		void get_init_dir(dir_t &dir);
 
     public:
         /* Class constructors and deconstructors. */

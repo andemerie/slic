@@ -36,9 +36,10 @@ int main(int argc, char *argv[]) {
 	slic.create_connectivity(lab_image);
 
 	/* Display the contours and show the result. */
-	slic.display_contours(image, CV_RGB(255, 0, 0));
-	slic.save_contours(*image, argv[5]);
-	//slic.display_vertices(image, CV_RGB(255, 255, 255));
+	//slic.display_contours(image, CV_RGB(255, 0, 0));
+	slic.colour_superpixels(image);
+	slic.display_vertices(image, CV_RGB(255, 255, 255));
+	slic.construct_graph(image);
 	cvShowImage("result", image);
 	cvWaitKey(0);
 	cvSaveImage(argv[4], image);
