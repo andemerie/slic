@@ -3,6 +3,8 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+slic_sp_features/out/
+
 # User-specific files
 *.suo
 *.user
