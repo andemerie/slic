@@ -1,5 +1,29 @@
 #include "slic.h"
 
+Dir operator++(Dir &dir, int) {
+	Dir result = dir;
+	if (dir == Dir::south) {
+		dir = Dir::southwest;
+	}
+	else {
+		using IntType = typename underlying_type<Dir>::type;
+		dir = static_cast<Dir>(static_cast<IntType>(dir) + 1);
+	}
+	return result;
+}
+
+Dir operator--(Dir &dir, int) {
+	Dir result = dir;
+	if (dir == Dir::southwest) {
+		dir = Dir::south;
+	}
+	else {
+		using IntType = typename underlying_type<Dir>::type;
+		dir = static_cast<Dir>(static_cast<IntType>(dir) - 1);
+	}
+	return result;
+}
+
 /*
  * Constructor. Nothing is done here.
  */
@@ -439,23 +463,39 @@ void Slic::save_contours(IplImage image, const char* filename) {
 	imwrite(filename, contours_binary);
 }
 
-void Slic::get_pixel_by_direction(dir_t dir, int &new_x, int &new_y, int x, int y) {
+void Slic::get_pixel_by_direction(Dir dir, int &new_x, int &new_y, int x, int y) {
 	switch (dir) {
-	case west:
+	case Dir::southwest:
+		new_x = x - 1;
+		new_y = y + 1;
+		break;
+	case Dir::west:
 		new_x = x - 1;
 		new_y = y;
 		break;
-	case south:
-		new_x = x;
-		new_y = y + 1;
+	case Dir::northwest:
+		new_x = x - 1;
+		new_y = y - 1;
 		break;
-	case east:
+	case Dir::north:
+		new_x = x;
+		new_y = y - 1;
+		break;
+	case Dir::northeast:
+		new_x = x + 1;
+		new_y = y - 1;
+		break;
+	case Dir::east:
 		new_x = x + 1;
 		new_y = y;
 		break;
-	case north:
+	case Dir::southeast:
+		new_x = x + 1;
+		new_y = y + 1;
+		break;
+	case Dir::south:
 		new_x = x;
-		new_y = y - 1;
+		new_y = y + 1;
 		break;
 	}
 }
@@ -474,6 +514,11 @@ bool Slic::is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int 
 		return false;
 	}
 
+	if (is_edge[new_x][new_y] >= 2) {
+		cout << "!!" << endl;
+		return true;
+	}
+
 	if (clusters[new_x][new_y] != clusters[x][y]) {
 		return true;
 	}
@@ -481,25 +526,13 @@ bool Slic::is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int 
 	return false;
 }
 
-Slic::dir_t Slic::rotate_ccw(dir_t dir) {
-	switch (dir) {
-		case west:
-			return south;
-		case south:
-			return east;
-		case east:
-			return north;
-		case north:
-			return west;
-	}
-}
-
-void Slic::go_next_edge_pixel(IplImage *image, dir_t &dir, int &x, int &y) {
-	dir_t init_dir = dir;
+void Slic::go_next_edge_pixel(IplImage *image, Dir &dir, int &x, int &y) {
+	Dir init_dir = dir;
 	int new_x, new_y;
 	get_pixel_by_direction(dir, new_x, new_y, x, y);
 	while (is_rotation_needed(image, new_x, new_y, x, y)) {
-		dir = rotate_ccw(dir);
+		/*dir = rotate_ccw(dir);*/
+		dir--;
 		if (dir == init_dir) { 
 			return;
 		}
@@ -508,24 +541,10 @@ void Slic::go_next_edge_pixel(IplImage *image, dir_t &dir, int &x, int &y) {
 	x = new_x, y = new_y;
 }
 
-void Slic::get_init_dir(dir_t &dir) {
-	switch (dir) {
-	case west:
-		dir = north;
-		break;
-	case north:
-		dir = east;
-		break;
-	case east:
-		dir = south;
-		break;
-	case south:
-		dir = west;
-		break;
-	}
-}
-
 void Slic::construct_graph(IplImage *image) {
+
+	cout << 1 << endl; 
+
     typedef pair<CvPoint, CvPoint> Edge;
 
 	for (int i = 0; i < image->width; i++) {
@@ -540,6 +559,14 @@ void Slic::construct_graph(IplImage *image) {
 		is_vertex[verts[i].x][verts[i].y] = true;
 	}
 
+	for (int i = 0; i < image->width; i++) {
+		vector<int> column;
+		for (int j = 0; j < image->height; j++) {
+			column.push_back(0);
+		}
+		is_edge.push_back(column);
+	}
+
 	vector<Edge> edges;
 	vector<int> weights;
 
@@ -547,11 +574,12 @@ void Slic::construct_graph(IplImage *image) {
 		int x = verts[i].x, y = verts[i].y;
 		int weight_counter = 0;
 
-		dir_t dir = south;
+		Dir dir = Dir::southwest;
 		while (true) {
-			get_init_dir(dir);
+			dir++;
 			go_next_edge_pixel(image, dir, x, y);
 			if (is_vertex[x][y]) { break; }
+			is_edge[x][y]++;
 			cvSet2D(image, y, x, CV_RGB(255, 255, 0));
 			weight_counter++;
 		}
