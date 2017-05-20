@@ -505,17 +505,16 @@ bool Slic::are_valid_values(IplImage *image, int new_x, int new_y) {
 	return false;
 }
 
-bool Slic::is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int y) {
+bool Slic::is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int y, int weight) {
 	if (!are_valid_values(image, new_x, new_y)) {
 		return true;
 	}
 
-	if (is_vertex[new_x][new_y]) {
+	if (is_vertex[new_x][new_y] && weight != 0) {
 		return false;
 	}
 
 	if (is_edge[new_x][new_y] >= 2) {
-		cout << "!!" << endl;
 		return true;
 	}
 
@@ -526,13 +525,16 @@ bool Slic::is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int 
 	return false;
 }
 
-void Slic::go_next_edge_pixel(IplImage *image, Dir &dir, int &x, int &y) {
+void Slic::go_next_edge_pixel(edge_t edge_type, IplImage *image, Dir &dir, int &x, int &y, int weight) {
 	Dir init_dir = dir;
 	int new_x, new_y;
 	get_pixel_by_direction(dir, new_x, new_y, x, y);
-	while (is_rotation_needed(image, new_x, new_y, x, y)) {
-		/*dir = rotate_ccw(dir);*/
-		dir--;
+	while (is_rotation_needed(image, new_x, new_y, x, y, weight)) {
+		if (edge_type == left) {
+			dir--;
+		} else {
+			dir++;
+		}
 		if (dir == init_dir) { 
 			return;
 		}
@@ -541,11 +543,48 @@ void Slic::go_next_edge_pixel(IplImage *image, Dir &dir, int &x, int &y) {
 	x = new_x, y = new_y;
 }
 
+void Slic::find_edge(edge_t edge_type, IplImage *image, int i) {
+	int x = verts[i].x, y = verts[i].y;
+	int weight_counter = 0;
+
+	Dir dir;
+	if (edge_type == left) {
+		dir = Dir::southwest;
+		cout << "left" << i << endl;
+	} else {
+		dir = Dir::northeast;
+		cout << "right" << i << endl;
+	}
+	while (true) {
+		if (edge_type == left) {
+			dir++;
+		} else {
+			dir--;
+		}
+		go_next_edge_pixel(edge_type, image, dir, x, y, weight_counter);
+		if (is_vertex[x][y]) { break; }
+		is_edge[x][y]++;
+		cvSet2D(image, y, x, CV_RGB(255, 255, 0));
+		weight_counter++;
+	}
+
+	if (weight_counter == 0) { 
+		cout << "WARNING: null weight from vertex " << i;
+		return;
+	}
+
+	edges.push_back(Edge(verts[i], CvPoint(x, y)));
+	int j = 0;
+	for ( ; j < verts.size(); j++) {
+		if (verts[j].x == x && verts[j].y == y) break;
+	}
+	edges1.push_back(Edge1(i, j));
+	weights.push_back(weight_counter);
+}
+
 void Slic::construct_graph(IplImage *image) {
 
 	cout << 1 << endl; 
-
-    typedef pair<CvPoint, CvPoint> Edge;
 
 	for (int i = 0; i < image->width; i++) {
 		vector<bool> column;
@@ -567,26 +606,111 @@ void Slic::construct_graph(IplImage *image) {
 		is_edge.push_back(column);
 	}
 
-	vector<Edge> edges;
-	vector<int> weights;
+	for (int i = 0; i < verts.size(); i++) {
+		find_edge(left, image, i);
+	}
+
+	for (int i = 0; i < image->width; i++) {
+		for (int j = 0; j < image->height; j++) {
+			is_edge[i][j] = 0;
+		}
+	}
 
 	for (int i = 0; i < verts.size(); i++) {
-		int x = verts[i].x, y = verts[i].y;
-		int weight_counter = 0;
-
-		Dir dir = Dir::southwest;
-		while (true) {
-			dir++;
-			go_next_edge_pixel(image, dir, x, y);
-			if (is_vertex[x][y]) { break; }
-			is_edge[x][y]++;
-			cvSet2D(image, y, x, CV_RGB(255, 255, 0));
-			weight_counter++;
-		}
-		
-		if (x == verts[i].x && y == verts[i].y) { continue; }
-
-		edges.push_back(Edge(verts[i], CvPoint(x, y)));
-		weights.push_back(weight_counter);
+		find_edge(right, image, i);
 	}
+
+	vec2di adj_matr;
+	for (int i = 0; i < verts.size(); i++) {
+		vector<int> column;
+		for (int j = 0; j < verts.size(); j++) {
+			column.push_back(INT_MAX);
+		}
+		adj_matr.push_back(column);
+	}
+
+	for (int i = 0; i < edges1.size(); i++) {
+		if (adj_matr[edges1[i].first][edges1[i].second] > weights[i]) {
+			adj_matr[edges1[i].first][edges1[i].second] = weights[i];
+			adj_matr[edges1[i].second][edges1[i].first] = weights[i];
+		}
+	}
+
+	int counter = 0;
+	for (int i = 0; i < verts.size(); i++) {
+		for (int j = 0; j < verts.size(); j++) {
+			if (adj_matr[i][j] != INT_MAX) {
+				cout << adj_matr[i][j] << " ";
+				counter++;
+			}
+		}
+		cout << endl;
+	}
+	//cout << "COUNTER: " << counter / 2 << endl;
+
+	/*for (int i = 0; i < verts.size(); i++) {
+		for (int j = 0; j < verts.size(); j++) {
+			if (adj_matr[i][j] != INT_MAX) {
+				cout << adj_matr[i][j] << " ";
+				counter++;
+			}
+		}
+		cout << endl;
+	}*/
+
+	vector<Edge1> new_edges;
+	vector<int> new_weights;
+
+	for (int i = 0; i < verts.size(); i++) {
+		for (int j = i; j < verts.size(); j++) {
+			if (adj_matr[i][j] != INT_MAX) {
+				new_edges.push_back(Edge1(i, j));
+				new_weights.push_back(adj_matr[i][j]);
+			}
+		}
+	}
+	//cout << "SIZES: " << new_edges.size() << " " << new_weights.size();
+
+	typedef adjacency_list < listS, vecS, directedS,
+		no_property, property < edge_weight_t, int > > graph_t;
+	typedef graph_traits < graph_t >::vertex_descriptor vertex_descriptor;
+
+	const int num_nodes = verts.size();
+	//enum nodes { A, B, C, D, E };
+	char name[] = "ABCDE";
+	Edge1 *edge_array = new Edge1[new_edges.size()];
+	for (int i = 0; i < new_edges.size(); i++) {
+		edge_array[i] = new_edges[i];
+	}
+
+	int *weights_array = new int[new_weights.size()];
+	for (int i = 0; i < new_weights.size(); i++) {
+		weights_array[i] = new_weights[i];
+	}
+	int num_arcs = new_edges.size();
+	graph_t g(edge_array, edge_array + num_arcs, weights_array, num_nodes);
+	property_map<graph_t, edge_weight_t>::type weightmap = get(edge_weight, g);
+	std::vector<vertex_descriptor> p(num_vertices(g));
+	std::vector<int> d(num_vertices(g));
+	vertex_descriptor s = vertex(0, g);
+
+	dijkstra_shortest_paths(g, s,
+		predecessor_map(boost::make_iterator_property_map(p.begin(), get(boost::vertex_index, g))).
+		distance_map(boost::make_iterator_property_map(d.begin(), get(boost::vertex_index, g))));
+
+	std::cout << "distances and parents:" << std::endl;
+	graph_traits < graph_t >::vertex_iterator vi, vend;
+	for (boost::tie(vi, vend) = vertices(g); vi != vend; ++vi) {
+		std::cout << "distance(" << *vi << ") = ";
+		if (d[*vi] != INT_MAX) {
+			cout << d[*vi] << ", ";
+		}
+		else {
+			cout << "infinity" << ", ";
+		}
+		std::cout << "parent(" << *vi << ") = " << p[*vi] << std::endl;
+	}
+	std::cout << std::endl;
+
+	system("pause");
 }

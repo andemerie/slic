@@ -21,6 +21,7 @@
 #include <vector>
 #include <float.h>
 #include <set>
+#include <map>
 
 #include <iostream>
 #include <boost/config.hpp>
@@ -78,6 +79,15 @@ class Slic {
 
 		vec2db is_vertex;
 		vec2di is_edge;
+
+		enum edge_t {left, right};
+
+		typedef pair<CvPoint, CvPoint> Edge;
+		typedef pair<int, int> Edge1;
+
+		vector<Edge> edges;
+		vector<Edge1> edges1;
+		vector<int> weights;
         
         /* Compute the distance between a center and an individual pixel. */
         double compute_dist(int ci, CvPoint pixel, CvScalar colour);
@@ -88,10 +98,11 @@ class Slic {
         void clear_data();
         void init_data(IplImage *image);
 
-		void go_next_edge_pixel(IplImage *image, Dir &dir, int &x, int &y);
+		void go_next_edge_pixel(edge_t edge_type, IplImage *image, Dir &dir, int &x, int &y, int weight);
 		void get_pixel_by_direction(Dir dir, int &new_x, int &new_y, int x, int y);
 		bool are_valid_values(IplImage *image, int new_x, int new_y);
-		bool is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int y);
+		bool is_rotation_needed(IplImage *image, int new_x, int new_y, int x, int y, int weight);
+		void find_edge(edge_t edge_type, IplImage *image, int i);
 
     public:
         /* Class constructors and deconstructors. */
