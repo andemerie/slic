@@ -8,30 +8,51 @@
  */
 
 #include "slic.h"
+#include <fstream>
 
-using namespace std;
+ofstream fout("report.txt");
 
 int main(int argc, char* argv[]) {
-  /* Load the image and convert to Lab colour space. */
-  IplImage* image = cvLoadImage(argv[1], 1);
-  IplImage* lab_image = cvCloneImage(image);
-  cvCvtColor(image, lab_image, CV_BGR2Lab);
+  string images[] = {
+      "dog.png", "lena.bmp", "forest.jpg", "earth.jpg", "doge.jpg"
+  };
 
-  /* Yield the number of superpixels and weight-factors from the user. */
-  int w = image->width, h = image->height;
-  int nr_superpixels = atoi(argv[2]);
-  int nc = atoi(argv[3]);
+  for (string image_name : images) {
+    /* Load the image and convert to Lab colour space. */
+    string image_path = "test/" + image_name;
+    IplImage* image = cvLoadImage(image_path.c_str(), 1);
+    IplImage* lab_image = cvCloneImage(image);
+    cvCvtColor(image, lab_image, CV_BGR2Lab);
 
-  double step = sqrt((w * h) / (double) nr_superpixels);
+    /* Yield the number of superpixels and weight-factors from the user. */
+    int w = image->width, h = image->height;
+    int nr_superpixels = 400;
+    int nc = 40;
 
-  /* Perform the SLIC superpixel algorithm. */
-  Slic slic;
-  slic.generate_superpixels(lab_image, step, nc);
-  slic.create_connectivity(lab_image);
+    double step = sqrt((w * h) / (double) nr_superpixels);
 
-  /* Display the contours and show the result. */
-  slic.display_contours(image, CV_RGB(255, 0, 0));
-  cvShowImage("result", image);
-  cvWaitKey(0);
-  cvSaveImage(argv[4], image);
+    /* Perform the SLIC superpixel algorithm. */
+    Slic slic;
+    auto start_time = std::chrono::steady_clock::now();
+    slic.generate_superpixels(lab_image, step, nc);
+    slic.create_connectivity(lab_image);
+
+    /* Display the contours and show the result. */
+    slic.display_contours(image, CV_RGB(255, 0, 0));
+//    cvShowImage("result", image);
+//    cvWaitKey(0);
+
+    auto end_time = std::chrono::steady_clock::now();
+    fout << "image: " << image_name << endl;
+    fout << "size: " << w << "x" << h << " = " << w * h << " pixels" << endl;
+    fout << "elapsed time: "
+         << std::chrono::duration_cast<std::chrono::milliseconds>(
+             end_time - start_time
+         ).count() / 1000. << "s" << endl;;
+    fout << "---------------------------------------------" << endl << endl;
+
+
+    string out_path = "out/" + image_name;
+    cvSaveImage(out_path.c_str(), image);
+  }
 }
