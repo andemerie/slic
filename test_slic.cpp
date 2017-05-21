@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
   };
 
   for (string image_name : images) {
-    auto start_time = std::chrono::steady_clock::now();
     /* Load the image and convert to Lab colour space. */
     Mat image = imread("test/" + image_name, 1);
     Mat lab_image;
@@ -33,6 +32,7 @@ int main(int argc, char* argv[]) {
 
     /* Perform the SLIC superpixel algorithm. */
     Slic slic;
+    auto start_time = std::chrono::steady_clock::now();
     slic.generate_superpixels(lab_image, int(step), nc);
     slic.create_connectivity(lab_image);
     slic.display_contours(image, Vec3b(0, 0, 255));
