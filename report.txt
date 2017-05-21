@@ -1,0 +1,25 @@
+image: dog.png
+size: 320x240 = 76800 pixels
+elapsed time: 1.586s
+---------------------------------------------
+
+image: lena.bmp
+size: 512x512 = 262144 pixels
+elapsed time: 4.324s
+---------------------------------------------
+
+image: forest.jpg
+size: 964x603 = 581292 pixels
+elapsed time: 9.163s
+---------------------------------------------
+
+image: earth.jpg
+size: 1024x1024 = 1048576 pixels
+elapsed time: 15.81s
+---------------------------------------------
+
+image: doge.jpg
+size: 2000x1200 = 2400000 pixels
+elapsed time: 38.067s
+---------------------------------------------
+
